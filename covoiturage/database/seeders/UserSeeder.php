@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class UserSeeder extends Seeder
 {
@@ -12,20 +12,57 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('password'),
-        ]);
-        User::create([
-            'name' => 'Passager 1',
-            'email' => 'passager1@example.com',
-            'password' => bcrypt('password'),
-        ]);
-        User::create([
-            'name' => 'Conducteur 1',
-            'email' => 'conducteur1@example.com',
-            'password' => bcrypt('password'),
-        ]);
-    }
+        $users = [
+            [
+                'nom' => "Hapsatou",
+                'prenom' => "Thiam",
+                'email' => "hapsatou.thiam@gmail.com",
+                "role" => "admin",
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+                'remember_token' => Str::random(10),
+            ],
+
+            [
+                'nom' => "Talla",
+                'prenom' => "Cheikh Saliou",
+                'email' => "cheikhSaliou@gmail.com",
+                "role" => "conducteur",
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+                'remember_token' => Str::random(10),
+            ],
+            [
+                'nom' => "Sagna",
+                'prenom' => "Moussa",
+                'email' => "sagna.moussa@gmail.com",
+                "role" => "conducteur",
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+                'remember_token' => Str::random(10),
+            ],
+          
+            [
+                'nom' => "Fall",
+                'prenom' => "Adijaratou Oumy",
+                'email' => "adijaratouOumy.fall@gmail.com",
+                "role" => "passager",
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+                'remember_token' => Str::random(10),
+            ],
+            [
+                'nom' => "Marone",
+                'prenom' => "Anna",
+                'email' => "anna.marone@gmail.com",
+                "role" => "passager",
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+                'remember_token' => Str::random(10),
+            ],
+        ];
+        foreach ($users as $user) {
+            User::create($user);
+        }
+}
 }
