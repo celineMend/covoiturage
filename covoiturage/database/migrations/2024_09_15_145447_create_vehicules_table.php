@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('immatriculation');
             $table->integer('nombre_place');
             $table->string('Assurance_vehicule');
-            $table->string('photo');
+            // $table->string('photo');
             $table->timestamps();
             $table->foreign('conducteur_id')->references('id')->on('conducteurs')->onDelete('cascade');
 

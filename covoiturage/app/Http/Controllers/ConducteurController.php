@@ -1,65 +1,134 @@
 <?php
 
-// app/Http/Controllers/ConducteurController.php
-
 namespace App\Http\Controllers;
 
 use App\Models\Conducteur;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreConducteurRequest;
+use App\Http\Requests\UpdateConducteurRequest;
 
 class ConducteurController extends Controller
 {
+    /**
+     * Afficher une liste des conducteurs.
+     */
     public function index()
     {
+        // Méthode pour récupérer la liste des conducteurs
         $conducteurs = Conducteur::all();
-        return response()->json($conducteurs);
+        return response()->json([
+            'status' => true,
+            'message' => 'La liste des conducteurs',
+            'data' => $conducteurs
+        ]);
     }
 
-    public function show($id)
+    /**
+     * Afficher le formulaire de création d'un nouveau conducteur.
+     */
+    public function create()
     {
-        $conducteur = Conducteur::find($id);
+        //
+    }
+
+    /**
+     * Enregistrer un conducteur nouvellement créé dans la base de données.
+     */
+    public function store(StoreConducteurRequest $request)
+    {
+        // Création d'un nouveau conducteur
+  
+    }
+
+    /**
+     * Afficher les détails d'un conducteur spécifié.
+     */
+    public function show(Conducteur $conducteur)
+    {
+
+    }
+
+    /**
+     * Afficher le formulaire de modification du conducteur spécifié.
+     */
+    public function edit(Conducteur $conducteur)
+    {
+        //
+    }
+
+    /**
+     * Mettre à jour les informations d'un conducteur spécifié dans la base de données.
+     */
+    public function update(UpdateConducteurRequest $request, Conducteur $conducteur)
+    {
+        // Récupérer l'utilisateur connecté
+        $user = auth()->user();
+
+        // Récupérer le conducteur associé à cet utilisateur
+        $conducteur = Conducteur::where('user_id', $user->id)->first();
+
+        // Vérifier si le conducteur existe
         if (!$conducteur) {
-            return response()->json(['message' => 'Conducteur not found'], 404);
+            return response()->json([
+                "status" => false,
+                "message" => "Conducteur non trouvé"
+            ], 404);
         }
-        return response()->json($conducteur);
-    }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'adresse' => 'required|string',
-            'telephone' => 'required|string',
+        // Validation des données de la requête
+        $validator = validator(
+            $request->all(),
+            [
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+                'password' => ['nullable', 'string', 'min:8'],
+                'nom' => ['required', 'string'],
+                'prenom' => ['required', 'string'],
+                'telephone' => ['required', 'string', 'unique:conducteurs,telephone,' . $conducteur->id],
+                'adresse' => ['required', 'string'],
+                'vehicule' => ['required', 'string'],
+                'numero_permis' => ['required', 'string'],
+            ]
+        );
+
+        // Si les données ne sont pas valides, renvoyer les erreurs
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Mettre à jour les informations de l'utilisateur
+        $user->email = $request->email;
+
+        // Si un nouveau mot de passe est fourni, le mettre à jour
+        if ($request->filled('password')) {
+            $user->password = bcrypt($request->password);
+        }
+
+        $user->save();
+
+        // Mettre à jour les informations du conducteur
+        $conducteur->update([
+            'nom' => $request->nom,
+            'prenom' => $request->prenom,
+            'telephone' => $request->telephone,
+            'adresse' => $request->adresse,
+            'vehicule' => $request->vehicule,
+            'numero_permis' => $request->numero_permis,
         ]);
 
-        $conducteur = Conducteur::create($request->all());
-        return response()->json($conducteur, 201);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $conducteur = Conducteur::find($id);
-        if (!$conducteur) {
-            return response()->json(['message' => 'Conducteur not found'], 404);
-        }
-
-        $request->validate([
-            'user_id' => 'sometimes|required|exists:users,id',
-            'adresse' => 'sometimes|required|string',
-            'telephone' => 'sometimes|required|string',
+        return response()->json([
+            "status" => true,
+            "message" => "Profil conducteur mis à jour avec succès",
+            "data" => [
+                "user" => $user,
+                "conducteur" => $conducteur
+            ]
         ]);
-
-        $conducteur->update($request->all());
-        return response()->json($conducteur);
     }
 
-    public function destroy($id)
+    /**
+     * Supprimer un conducteur spécifié de la base de données.
+     */
+    public function destroy(Conducteur $conducteur)
     {
-        $conducteur = Conducteur::find($id);
-        if (!$conducteur) {
-            return response()->json(['message' => 'Conducteur not found'], 404);
-        }
-        $conducteur->delete();
-        return response()->json(['message' => 'Conducteur deleted successfully']);
+
     }
 }

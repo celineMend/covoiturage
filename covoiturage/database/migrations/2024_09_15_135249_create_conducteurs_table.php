@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->string('permis_conduire');
-            $table->string('vehicule');
+            $table->string('CIN');
+            $table->string('carte_gris');
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
