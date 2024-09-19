@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Conducteur;
+use Illuminate\Http\Request;
 use App\Http\Requests\StoreConducteurRequest;
 use App\Http\Requests\UpdateConducteurRequest;
 
@@ -36,7 +38,7 @@ class ConducteurController extends Controller
     public function store(StoreConducteurRequest $request)
     {
         // Création d'un nouveau conducteur
-  
+
     }
 
     /**
@@ -47,88 +49,153 @@ class ConducteurController extends Controller
 
     }
 
-    /**
-     * Afficher le formulaire de modification du conducteur spécifié.
-     */
-    public function edit(Conducteur $conducteur)
+
+
+    public function updateUser(Request $request, $id)
     {
-        //
-    }
+        $user = User::find($id);
 
-    /**
-     * Mettre à jour les informations d'un conducteur spécifié dans la base de données.
-     */
-    public function update(UpdateConducteurRequest $request, Conducteur $conducteur)
-    {
-        // Récupérer l'utilisateur connecté
-        $user = auth()->user();
-
-        // Récupérer le conducteur associé à cet utilisateur
-        $conducteur = Conducteur::where('user_id', $user->id)->first();
-
-        // Vérifier si le conducteur existe
-        if (!$conducteur) {
+        if (!$user) {
             return response()->json([
-                "status" => false,
-                "message" => "Conducteur non trouvé"
+                'status' => false,
+                'message' => 'Utilisateur non trouvé'
             ], 404);
         }
 
-        // Validation des données de la requête
-        $validator = validator(
-            $request->all(),
-            [
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-                'password' => ['nullable', 'string', 'min:8'],
-                'nom' => ['required', 'string'],
-                'prenom' => ['required', 'string'],
-                'telephone' => ['required', 'string', 'unique:conducteurs,telephone,' . $conducteur->id],
-                'adresse' => ['required', 'string'],
-                'vehicule' => ['required', 'string'],
-                'numero_permis' => ['required', 'string'],
-            ]
-        );
+        $request->validate([
+            'nom' => 'sometime|string',
+            'prenom' => 'sometime|string',
+            'email' => 'sometime|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8',
+        ]);
 
-        // Si les données ne sont pas valides, renvoyer les erreurs
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
-
-        // Mettre à jour les informations de l'utilisateur
         $user->email = $request->email;
 
-        // Si un nouveau mot de passe est fourni, le mettre à jour
         if ($request->filled('password')) {
             $user->password = bcrypt($request->password);
         }
 
         $user->save();
 
+        return response()->json([
+            'status' => true,
+            'message' => 'Informations de l\'utilisateur mises à jour avec succès',
+            'data' => $user
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        // Récupérer le conducteur par ID
+        $conducteur = Conducteur::find($id);
+
+        if (!$conducteur) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Conducteur non trouvé'
+            ], 404);
+        }
+
+        // Récupérer l'utilisateur associé
+        $user = $conducteur->user;
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Utilisateur associé non trouvé'
+            ], 404);
+        }
+
+        // Mettre à jour les informations de l'utilisateur
+        $this->updateUser($request, $user->id);
+
+        // Validation des données spécifiques au conducteur
+        $request->validate([
+            'numero_permis' => 'sometimes|string',
+            'CIN' => 'sometimes|string',
+            'carte_gris' => 'sometimes|string',
+        ]);
+
         // Mettre à jour les informations du conducteur
         $conducteur->update([
-            'nom' => $request->nom,
-            'prenom' => $request->prenom,
-            'telephone' => $request->telephone,
-            'adresse' => $request->adresse,
-            'vehicule' => $request->vehicule,
             'numero_permis' => $request->numero_permis,
+            'CIN' => $request->CIN,
+            'carte_gris' => $request->carte_gris,
         ]);
 
         return response()->json([
-            "status" => true,
-            "message" => "Profil conducteur mis à jour avec succès",
-            "data" => [
-                "user" => $user,
-                "conducteur" => $conducteur
-            ]
+            'status' => true,
+            'message' => 'Informations du conducteur mises à jour avec succès',
+            'data' => $conducteur
         ]);
     }
 
-    /**
-     * Supprimer un conducteur spécifié de la base de données.
-     */
-    public function destroy(Conducteur $conducteur)
-    {
 
-    }
+
+
+
+    // /**
+    //  * Afficher le formulaire de modification du conducteur spécifié.
+    //  */
+    // public function edit(Conducteur $conducteur)
+    // {
+    //     //
+    // }
+    // public function update(Request $request, $id)
+    // {
+    //     // Trouver le conducteur par ID
+    //     $conducteur = Conducteur::find($id);
+
+    //     // Vérifier si le conducteur existe
+    //     if (!$conducteur) {
+    //         return response()->json([
+    //             "status" => false,
+    //             "message" => "Conducteur non trouvé"
+    //         ], 404);
+    //     }
+
+    //     // Validation des données de la requête
+    //     $validated = $request->validate([
+
+    //         'permis_conduire' => 'sometime|string',
+    //         'CIN' => 'sometime|string',
+    //         'carte_gris' => 'sometime|string',
+    //     ]);
+
+    //     // Mettre à jour les informations de l'utilisateur
+    //     $user = $conducteur->user;
+    //     $user->email = $request->email;
+
+    //     if ($request->filled('password')) {
+    //         $user->password = bcrypt($request->password);
+    //     }
+
+    //     $user->save();
+
+    //     // Mettre à jour les informations du conducteur
+    //     $conducteur->update([
+
+    //         'permis_conduire' => $request->permis_conduire,
+    //         'CIN' => $request->CIN,
+    //         'carte_gris' => $request->carte_gris
+    //     ]);
+
+    //     return response()->json([
+    //         "status" => true,
+    //         "message" => "Informations du conducteur mises à jour avec succès",
+    //         "data" => [
+    //             "user" => $user,
+    //             "conducteur" => $conducteur
+    //         ]
+    //     ]);
+    // }
+
+
+    // /**
+    //  * Supprimer un conducteur spécifié de la base de données.
+    //  */
+    // public function destroy(Conducteur $conducteur)
+    // {
+
+    // }
 }
