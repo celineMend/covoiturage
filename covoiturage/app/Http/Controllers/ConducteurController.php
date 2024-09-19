@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Conducteur;
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreConducteurRequest;
-use App\Http\Requests\UpdateConducteurRequest;
 
 class ConducteurController extends Controller
 {
@@ -15,7 +13,6 @@ class ConducteurController extends Controller
      */
     public function index()
     {
-        // Méthode pour récupérer la liste des conducteurs
         $conducteurs = Conducteur::all();
         return response()->json([
             'status' => true,
@@ -25,20 +22,42 @@ class ConducteurController extends Controller
     }
 
     /**
-     * Afficher le formulaire de création d'un nouveau conducteur.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Enregistrer un conducteur nouvellement créé dans la base de données.
      */
-    public function store(StoreConducteurRequest $request)
+    public function store(Request $request)
     {
-        // Création d'un nouveau conducteur
+        // Validation des données
+        $request->validate([
+            'nom' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8',
+            'numero_permis' => 'required|string',
+            'CIN' => 'required|string',
+            'carte_gris' => 'required|string',
+        ]);
 
+        // Création d'un utilisateur
+        $user = User::create([
+            'nom' => $request->nom,
+            'prenom' => $request->prenom,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+        ]);
+
+        // Création d'un conducteur associé
+        $conducteur = Conducteur::create([
+            'user_id' => $user->id,
+            'numero_permis' => $request->numero_permis,
+            'CIN' => $request->CIN,
+            'carte_gris' => $request->carte_gris,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Conducteur créé avec succès',
+            'data' => $conducteur
+        ], 201);
     }
 
     /**
@@ -46,47 +65,18 @@ class ConducteurController extends Controller
      */
     public function show(Conducteur $conducteur)
     {
-
-    }
-
-
-
-    public function updateUser(Request $request, $id)
-    {
-        $user = User::find($id);
-
-        if (!$user) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Utilisateur non trouvé'
-            ], 404);
-        }
-
-        $request->validate([
-            'nom' => 'sometime|string',
-            'prenom' => 'sometime|string',
-            'email' => 'sometime|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8',
-        ]);
-
-        $user->email = $request->email;
-
-        if ($request->filled('password')) {
-            $user->password = bcrypt($request->password);
-        }
-
-        $user->save();
-
         return response()->json([
             'status' => true,
-            'message' => 'Informations de l\'utilisateur mises à jour avec succès',
-            'data' => $user
+            'message' => 'Détails du conducteur récupérés avec succès',
+            'data' => $conducteur
         ]);
     }
 
+    /**
+     * Mettre à jour les informations d'un conducteur spécifique.
+     */
     public function update(Request $request, $id)
     {
-        // Récupérer le conducteur par ID
         $conducteur = Conducteur::find($id);
 
         if (!$conducteur) {
@@ -96,7 +86,6 @@ class ConducteurController extends Controller
             ], 404);
         }
 
-        // Récupérer l'utilisateur associé
         $user = $conducteur->user;
 
         if (!$user) {
@@ -129,6 +118,46 @@ class ConducteurController extends Controller
             'data' => $conducteur
         ]);
     }
+
+    /**
+     * Mettre à jour les informations d'un utilisateur spécifique.
+     */
+    private function updateUser(Request $request, $id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Utilisateur non trouvé'
+            ], 404);
+        }
+
+        $request->validate([
+            'nom' => 'sometimes|string|max:255',
+            'prenom' => 'sometimes|string|max:255',
+            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8',
+        ]);
+
+        $user->nom = $request->nom;
+        $user->prenom = $request->prenom;
+        $user->email = $request->email;
+
+        if ($request->filled('password')) {
+            $user->password = bcrypt($request->password);
+        }
+
+        $user->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Informations de l\'utilisateur mises à jour avec succès',
+            'data' => $user
+        ]);
+    }
+
+
 
 
 

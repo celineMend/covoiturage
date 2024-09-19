@@ -17,18 +17,22 @@ class VehiculesSeeder extends Seeder
             [
                 'marque' => 'Toyota',
                 'modele' => 'Corolla',
+                'couleur' => 'blanc',
                 'immatriculation' => 'ABC1234',
                 'conducteur_id' => 1,
                 'nombre_place'=> 4,
-                'Assurance_vehicule'=> 'Assurance A'
+                'Assurance_vehicule'=> 'Assurance A',
+                'photo' => 'path_to_photo_file'
             ],
             [
                 'marque' => 'Peugeot',
                 'modele' => '208',
+                'couleur' => 'blanc',
                 'immatriculation' => 'XYZ5678',
                 'conducteur_id' => 2,
                 'nombre_place' => 7,
-                'assurance_vehicule' => 'Assurance B'
+                'assurance_vehicule' => 'Assurance B',
+                'photo' => 'path_to_photo_file'
             ],
         ];
 

@@ -30,18 +30,24 @@ class VehiculeController extends Controller
         $request->validate([
             'marque' => 'required|string|max:255',
             'modele' => 'required|string|max:255',
-            'année' => 'required|integer|min:1900|max:'.date('Y'),
-            'num_immatriculation' => 'required|string|max:255|unique:vehicules,num_immatriculation',
-            'capacité' => 'required|integer|min:1',
+            'couleur' => 'required|string|max:255',
+            'immatriculation' => 'required|string|max:255|unique:vehicules,immatriculation',
+            'conducteur_id' => 'required|exists:conducteurs,id',
+            'nombre_place' => 'required|integer',
+            'assurance_vehicule' => 'required|string|max:255',
+            'photo' => 'nullable|string'
         ]);
 
-        // Création du véhicule
+        // Création du véhicule avec toutes les données
         $vehicule = Vehicule::create([
             'marque' => $request->marque,
             'modele' => $request->modele,
-            'année' => $request->année,
-            'num_immatriculation' => $request->num_immatriculation,
-            'capacité' => $request->capacité,
+            'couleur' => $request->couleur,
+            'immatriculation' => $request->immatriculation,
+            'conducteur_id' => $request->conducteur_id,
+            'nombre_place' => $request->nombre_place,
+            'assurance_vehicule' => $request->assurance_vehicule,
+            'photo' => $request->photo
         ]);
 
         return response()->json([
@@ -90,13 +96,18 @@ class VehiculeController extends Controller
         $request->validate([
             'marque' => 'sometimes|required|string|max:255',
             'modele' => 'sometimes|required|string|max:255',
-            'année' => 'sometimes|required|integer|min:1900|max:'.date('Y'),
-            'num_immatriculation' => 'sometimes|required|string|max:255|unique:vehicules,num_immatriculation,'.$id,
-            'capacité' => 'sometimes|required|integer|min:1',
+            'couleur' => 'sometimes|required|string|max:255',
+            'immatriculation' => 'sometimes|required|string|max:255|unique:vehicules,immatriculation,'.$id,
+            'conducteur_id' => 'sometimes|required|exists:conducteurs,id',
+            'nombre_place' => 'sometimes|required|integer',
+            'assurance_vehicule' => 'sometimes|required|string|max:255',
+            'photo' => 'sometimes|nullable|string|max:255'
         ]);
 
         // Mise à jour des informations
-        $vehicule->update($request->only('marque', 'modele', 'année', 'num_immatriculation', 'capacité'));
+        $vehicule->update($request->only([
+            'marque', 'modele', 'couleur', 'immatriculation', 'conducteur_id', 'nombre_place', 'assurance_vehicule', 'photo'
+        ]));
 
         return response()->json([
             'status' => true,

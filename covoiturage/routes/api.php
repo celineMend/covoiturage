@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\TrajetController;
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\VehiculeController;
 use App\Http\Controllers\ConducteurController;
+use App\Http\Controllers\ReservationController;
 
 // Routes pour l'enregistrement, la connexion, et la gestion des tokens
 Route::post('/register', [ApiController::class, 'register']);
@@ -19,5 +21,7 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('trajets', TrajetController::class);
     // Route pour vehicule
     Route::apiResource('vehicules', VehiculeController::class);
+    // Routes pour les réservations
+    Route::apiResource('reservations', ReservationController::class);
 
 });

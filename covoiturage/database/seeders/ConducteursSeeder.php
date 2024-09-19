@@ -20,12 +20,12 @@ class ConducteursSeeder extends Seeder
                 'carte_gris' => 'GR123456',
                 'user_id' => 1
             ],
-            [
+            [ 
                 'permis_conduire' => '987654321',
                 'CIN' => 'C654321',
                 'carte_gris' => 'GR654321',
                 'user_id' => 2
-                
+
 
             ],
         ];

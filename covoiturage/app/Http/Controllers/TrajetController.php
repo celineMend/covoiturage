@@ -25,35 +25,35 @@ class TrajetController extends Controller
      * Créer un nouveau trajet.
      */
     public function store(Request $request)
-{
-    try {
-        // Validation des données entrantes
-        $validatedData = $request->validate([
-            'conducteur_id' => 'required|exists:conducteurs,id',
-            'point_depart' => 'required|string',
-            'point_arrivee' => 'required|string',
-            'date_heure_depart' => 'required|date_format:Y-m-d H:i:s',
-            'statut' => 'required|in:en cours,terminer,annuler,confirmer',
-            'vehicule_id' => 'required|exists:vehicules,id',
-            'prix' => 'required|numeric',
-        ]);
-    } catch (\Illuminate\Validation\ValidationException $e) {
+    {
+        try {
+            // Validation des données entrantes
+            $validatedData = $request->validate([
+                'conducteur_id' => 'required|exists:conducteurs,id',
+                'point_depart' => 'required|string|max:255',
+                'point_arrivee' => 'required|string|max:255',
+                'date_heure_depart' => 'required|date_format:Y-m-d H:i:s',
+                'statut' => 'required|string',
+                'vehicule_id' => 'required|exists:vehicules,id',
+                'prix' => 'required|numeric',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation échouée',
+                'errors' => $e->errors()
+            ], 422);
+        }
+
+        // Création du trajet
+        $trajet = Trajet::create($validatedData);
+
         return response()->json([
-            'status' => false,
-            'message' => 'Validation échouée',
-            'errors' => $e->errors()
-        ], 422);
+            'status' => true,
+            'message' => 'Trajet créé avec succès',
+            'data' => $trajet
+        ], 201);
     }
-
-    // Création du trajet
-    $trajet = Trajet::create($validatedData);
-
-    return response()->json([
-        'status' => true,
-        'message' => 'Trajet créé avec succès',
-        'data' => $trajet
-    ], 201);
-}
 
     /**
      * Afficher les détails d'un trajet spécifique.
