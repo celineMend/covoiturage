@@ -2,62 +2,72 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Paiement;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use GuzzleHttp\Exception\RequestException;
 
-class PaiementController extends Controller
+class PaymentController extends Controller
 {
-    public function index()
+    public function payment()
     {
-        $paiements = Paiement::all();
-        return response()->json($paiements);
-    }
+        $client = new Client();
+        $url = 'https://api.naboopay.com/api/v1/account/';
 
-    public function show($id)
-    {
-        $paiement = Paiement::find($id);
-        if (!$paiement) {
-            return response()->json(['message' => 'Paiement not found'], 404);
+        $headers = [
+            'Accept' => 'application/json',
+            'Authorization' => 'Bearer naboo-e7c1f9e5-cc15-4bbf-ac0b-1fde5c9f5915.c9c82539-fbd5-45e0-b4c0-bcd93998fbb2',
+        ];
+
+        try {
+            $response = $client->request('GET', $url, [
+                'headers' => $headers,
+            ]);
+
+            // Récupérer le corps de la réponse
+            $responseBody = json_decode($response->getBody()->getContents(), true);
+
+            // Passer les données à la vue
+            return view('welcome', compact('responseBody'));
+
+        } catch (RequestException $e) {
+            // Gérer l'erreur
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], $e->getCode());
         }
-        return response()->json($paiement);
     }
-
-    public function store(Request $request)
+    public function createPayment(Request $request)
     {
-        $request->validate([
-            'reservation_id' => 'required|exists:reservations,id',
-            'montant' => 'required|numeric',
-            'date_paiement' => 'required|date',
-        ]);
+        $client = new Client();
+        $url = 'https://api.naboopay.com/api/v1/transaction/create-transaction';
 
-        $paiement = Paiement::create($request->all());
-        return response()->json($paiement, 201);
-    }
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+            'Authorization' => 'Bearer naboo-e7c1f9e5-cc15-4bbf-ac0b-1fde5c9f5915.c9c82539-fbd5-45e0-b4c0-bcd93998fbb2',
+        ];
 
-    public function update(Request $request, $id)
-    {
-        $paiement = Paiement::find($id);
-        if (!$paiement) {
-            return response()->json(['message' => 'Paiement not found'], 404);
+        // Préparer le corps de la requête
+        $body = [
+            "method_of_payment" => [$request->input('method_of_payment')], // Forcer à tableau
+            "products" => $request->input('products'), // Assurez-vous que ça inclut category
+            "is_escrow" => $request->input('is_escrow'),
+            "success_url" => $request->input('success_url'),
+            "error_url" => $request->input('error_url'),
+        ];
+
+        try {
+            $response = $client->request('PUT', $url, [
+                'headers' => $headers,
+                'json' => $body,
+            ]);
+
+            return $response->getBody()->getContents();
+
+        } catch (RequestException $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], $e->getCode());
         }
-
-        $request->validate([
-            'reservation_id' => 'sometimes|required|exists:reservations,id',
-            'montant' => 'sometimes|required|numeric',
-            'date_paiement' => 'sometimes|required|date',
-        ]);
-
-        $paiement->update($request->all());
-        return response()->json($paiement);
-    }
-
-    public function destroy($id)
-    {
-        $paiement = Paiement::find($id);
-        if (!$paiement) {
-            return response()->json(['message' => 'Paiement not found'], 404);
-        }
-        $paiement->delete();
-        return response()->json(['message' => 'Paiement deleted successfully']);
     }
 }
